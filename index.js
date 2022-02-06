@@ -1,7 +1,7 @@
 const inquirer = require('inquirer');
 const db = require('./db/connection');
-const cTable = require('console.table');
-const { promise } = require('./db/connection');
+// const cTable = require('console.table');
+// const { promise } = require('./db/connection');
 // const Query = require('./db/queries');
 
 let sql; 
@@ -120,7 +120,7 @@ function addRole(){
             .catch(console.log)
 }
 
-function getemployee(options, question){
+function getNameFromList(options, question){
     return inquirer.prompt([
         {
             type: 'list',
@@ -135,11 +135,10 @@ function getemployee(options, question){
 }
 function updateRole(){
     let employeeId;
-    let departamentId;
     sql =`SELECT concat(employee.first_name,' ', employee.last_name) name FROM employee;`;
     db.promise().query(sql)
         .then(([rows, fields])=>{
-            getemployee(rows, 'Which employees role do you whant to update? ')
+            getNameFromList(rows, 'Which employees role do you whant to update? ')
                 .then(answears=>{
                     sql = `SELECT employee.id 
                             FROM employee
@@ -154,7 +153,7 @@ function updateRole(){
                         sql = `SELECT title as name FROM role;`;
                         db.promise().query(sql)
                             .then(([rows, fields])=>{ 
-                                getemployee(rows,'Wich role do you whant to assign the selected employeee')
+                                getNameFromList(rows,'Wich role do you whant to assign the selected employeee')
                                     .then(answears=>{
                                         db.query(`SELECT role.id FROM role WHERE role.title = ?`, answears.roles, (err, rows)=>{
                                             if(err){
@@ -180,6 +179,109 @@ function updateRole(){
                 });
         }).catch(console.log);
 }
+
+function askFirst_nameLast_name(options){    
+    return inquirer.prompt([
+        {
+            type: 'input',
+            name:'first_name',
+            message: "What is the employee's first name?",
+            validate: nameInput => {
+                if(nameInput){
+                    return true
+                } else{
+                    console.log('Please enter a first name!');
+                    return false;
+                }
+            }
+        },
+        {
+            type: 'input',
+            name:'last_name',
+            message: "What is the employee's last name?",
+            validate: nameInput => {
+                if(nameInput){
+                    return true
+                } else{
+                    console.log('Please enter a salary !');
+                    return false;
+                }
+            }
+
+        }
+    ]);
+
+
+}
+
+
+function addEmployee(){
+    let first_name;
+    let last_name;
+    let employeeRoleId;
+    askFirst_nameLast_name()
+        .then(answears=>{
+            first_name = answears.first_name;
+            last_name = answears.last_name;
+            db.query(`SELECT title as name FROM role `, (err, rows) => {
+                if(err){
+                    console.log('error in view title from roles in addEmployee')
+                    return;
+                }
+                getNameFromList(rows,"What is the employee's role")
+                    .then(answearRole=>{
+                        
+                        db.query(`SELECT id as name FROM role WHERE title = ? `,answearRole.roles, (err, rows) => {
+                            if(err){
+                                console.log('error in query geting roles ')
+                                return;
+                            }
+                            employeeRoleId = rows[0].name;
+                            
+                            db.query(`SELECT id as name FROM role WHERE title = ? `,answearRole.roles, (err, rows) => {
+                                if(err){
+                                    console.log('error in query geting roles ')
+                                    return;
+                                }
+                                employeeRoleId = rows[0].name;
+                                
+                                db.query(`SELECT concat(employee.first_name,' ',employee.last_name) as name FROM employee WHERE employee.manager_id is null;`, (err, rows) => {
+                                    if(err){
+                                        console.log('error in query geting roles ')
+                                        return;
+                                    }
+                                    //funcion getnamelst
+                                    rows.push('None');
+                                    getNameFromList(rows,"Who is the employee's manager")
+                                        .then(answear=>{
+                                                if (answear.roles === 'None'){
+                                                    answear.roles = null;
+                                                }
+                                                db.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?,?,?,?);`, [first_name, last_name, employeeRoleId, answear.roles], (err, rows)=>{
+                                                    if(err){
+                                                        console.log('error in inserting employee ');                                                        
+                                                        return;
+                                                    }
+                                                    console.log('Employee Added')
+                                                    init();
+                                            });
+                                        });
+                                    
+                                    
+                                });
+                                
+                            });
+                            
+                        });
+
+                    });
+            });
+                
+            
+        });
+
+}
+
 function wellcome(){
     console.log(",---------------------------------------------------.");
     console.log("|                                                   |");
@@ -276,7 +378,7 @@ function init(){
                     
                 break;
                 case 'Add an employee':
-                    console.log('codigo para agregar un empleado');
+                    addEmployee();
                 break;
                 case 'Update an employee role':
                     updateRole();

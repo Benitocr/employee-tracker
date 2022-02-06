@@ -23,7 +23,8 @@ VALUES
 ('Ashley', 'Rodriguez', 2, NULL),
 ('Kevin', 'Tupik', 3,2),
 ('Kumal', 'Singh', 4, NULL),
-('Malia', 'Brown',5,6),
+('Malia', 'Brown',5,4),
 ('Sarah', 'Lord', 6, NULL),
 ('Tom', 'Allen',7,6);
+
 
