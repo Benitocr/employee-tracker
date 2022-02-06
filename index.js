@@ -39,13 +39,40 @@ function askDepartment(){
 }
 
 function askRole(options){
-
+    
     return inquirer.prompt([
+        {
+            type: 'input',
+            name:'name',
+            message: 'What is the Name of the role?',
+            validate: nameInput => {
+                if(nameInput){
+                    return true
+                } else{
+                    console.log('Please enter a name of a role!');
+                    return false;
+                }
+            }
+        },
+        {
+            type: 'input',
+            name:'salary',
+            message: 'What is the salary of the role?',
+            validate: nameInput => {
+                if(nameInput){
+                    return true
+                } else{
+                    console.log('Please enter a salary !');
+                    return false;
+                }
+            }
+
+        },
         {
             type: 'list',
             name: 'roles',
             message: 'Which department does the role belong to? ',
-            choices: ['View all departments','View all roles', 'View all employees', 'Add a department', 'Add a role', 'Add an employee', 'Update an employee role','Exit' ],
+            choices: options,
             default: '1'
         }
     ]);
@@ -53,16 +80,53 @@ function askRole(options){
 
 }
 function addRole(){
-    console.log('Dentro de addRole');
     sql = `SELECT name FROM departament;`;
-    
+    //query to obtain the departament list
     db.promise().query(sql)
         .then(([rows,fields]) => {
-                console.log(rows);
                 
+                //calling fuction to collect the information to add a role
+                askRole(rows)
+                    .then(answears=>{
+                        console.log(answears);
+                        sql = `SELECT departament.id 
+                                FROM departament
+                                WHERE departament.name = ?;`;
+                        params = answears.roles;
+                        //query to obtain the id of the department
+                        db.query(sql, params, (err, result) => {
+                                        if(err){
+                                            console.log('error in quering department');
+                                            return;
+                                        }
+                                        console.log(result[0].id);
+                                        sql = `INSERT INTO role (title, salary, departament_id) VALUES (?,?,?);`;
+                                        params = [answears.name, answears.salary, result[0].id];                                        
+                                        //query to insert the role
+                                        db.query(sql, params, (err, result) => {
+                                            if(err){
+                                                console.log('error in INSERTING ROLE');
+                                                console.log(err);
+                                                return;
+                                            }
+                                            console.log('Added '+ answears.name + ' to role');
+                                            //calling init function to return to main menu
+                                            init();
+                                           
+                                        });
+                                       
+                                    });
+                        
+
+                        
+                    }
+
+                );
+                
+
             })
             .catch(console.log)
-            .then( () => db.end())
+            // .then( () => db.end())
                     
     
     

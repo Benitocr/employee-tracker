@@ -8,3 +8,7 @@ LEFT JOIN departament ON role.departament_id = departament.id
 SELECT role.id, role.title, departament.name departament, role.salary
 FROM role
 LEFT JOIN departament ON role.departament_id = departament.id;
+
+SELECT departament.id 
+FROM departament
+WHERE departament.name = 'Engineering';
