@@ -1,6 +1,10 @@
 const inquirer = require('inquirer');
 const db = require('./db/connection');
 const cTable = require('console.table');
+// const Query = require('./db/queries');
+
+let sql; 
+let params;   
 const menu = () => {
     
 
@@ -13,6 +17,56 @@ const menu = () => {
             default: '1'
         }
     ]);
+}
+
+function askDepartment(){
+    return inquirer.prompt([
+        {
+            type: 'input',
+                name: 'departamentName',
+                message: 'Please enter the name of the department',
+                validate: nameInput => {
+                    if(nameInput){
+                        return true
+                    } else{
+                        console.log('Please enter a department name!');
+                        return false;
+                    }
+                }
+        }
+    ]);
+
+}
+
+function askRole(options){
+
+    return inquirer.prompt([
+        {
+            type: 'list',
+            name: 'roles',
+            message: 'Which department does the role belong to? ',
+            choices: ['View all departments','View all roles', 'View all employees', 'Add a department', 'Add a role', 'Add an employee', 'Update an employee role','Exit' ],
+            default: '1'
+        }
+    ]);
+
+
+}
+function addRole(){
+    console.log('Dentro de addRole');
+    sql = `SELECT name FROM departament;`;
+    
+    db.promise().query(sql)
+        .then(([rows,fields]) => {
+                console.log(rows);
+                
+            })
+            .catch(console.log)
+            .then( () => db.end())
+                    
+    
+    
+                       
 }
 
 function wellcome(){
@@ -34,47 +88,85 @@ function wellcome(){
     console.log("`---------------------------------------------------'");
 }
 
+
+
 function init(){
    
     menu()
         .then ( answears => {
                 switch(answears.menu){
                 case 'View all departments':
-                    const sql = `SELECT * FROM departament;`;
+                    sql = `SELECT * FROM departament;`;
 
                     db.query(sql, (err, rows) => {
                         if(err){
                             console.log('error in view all departments')
                             return;
                         }
-                    console.table(rows);
+                    console.table(rows);             
                     init();
 
                     });
                     
                 break;
-                case 'View all roles':
-                    console.log('codigo para mostrar los roles');
-                    const sql1 = `SELECT *
-                                FROM role;`;
+                case 'View all roles':                    
+                    const sql1 = `SELECT role.id, role.title, departament.name departament, role.salary
+                                    FROM role
+                                    LEFT JOIN departament ON role.departament_id = departament.id;`;
 
                     db.query(sql1, (err, rows) => {
                         if(err){
-                            console.log('error in view all departments')
+                            console.log('error in view all roles')
                             return;
                         }
-                    console.table(rows);
-                    init();
+                        console.table(rows);
+                        init();
                     });
                 break;
                 case 'View all employees':
                     console.log('codigo para mostrar los empleados');
+                        sql = `SELECT employee.id, employee.first_name, employee.last_name, role.title, departament.name departament, role.salary, concat(employee.first_name,' ',employee.last_name) manager
+                                    FROM employee
+                                    LEFT JOIN role ON employee.role_id = role.id
+                                    LEFT JOIN departament ON role.departament_id = departament.id;`;
+
+                        db.query(sql, (err, rows) => {
+                            if(err){
+                                console.log('error in view all employees')
+                                return;
+                            }
+                        console.table(rows);
+                        
+                    init();
+                    });
+
+
                 break;
                 case 'Add a department':
-                    console.log('codigo para agregar un departamento');
+                    askDepartment()
+                        .then(answears=>{                            
+                            sql = `INSERT INTO departament (name)
+                                            VALUES(?);`;
+                            params = answears.departamentName;
+
+                            db.query(sql, params, (err, result) => {
+                                if(err){
+                                    console.log('error in add department')
+                                    return;
+                                }
+                                console.log('Departament '+ answears.departamentName + ' Added to the database');
+                                init();
+                            });
+
+
+                        });
                 break;
                 case 'Add a role':
                     console.log('codigo para agregar un rol');
+                    addRole()
+                        // .then(answears=>{
+                        //     console.log ('nose' + answears);
+                        // });
                 break;
                 case 'Add an employee':
                     console.log('codigo para agregar un empleado');
