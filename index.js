@@ -1,6 +1,7 @@
 const inquirer = require('inquirer');
 const db = require('./db/connection');
 const cTable = require('console.table');
+const { promise } = require('./db/connection');
 // const Query = require('./db/queries');
 
 let sql; 
@@ -38,8 +39,7 @@ function askDepartment(){
 
 }
 
-function askRole(options){
-    
+function askRole(options){    
     return inquirer.prompt([
         {
             type: 'input',
@@ -79,16 +79,17 @@ function askRole(options){
 
 
 }
+
+
+
 function addRole(){
     sql = `SELECT name FROM departament;`;
     //query to obtain the departament list
     db.promise().query(sql)
-        .then(([rows,fields]) => {
-                
+        .then(([rows,fields]) => {                
                 //calling fuction to collect the information to add a role
                 askRole(rows)
-                    .then(answears=>{
-                        console.log(answears);
+                    .then(answears=>{                        
                         sql = `SELECT departament.id 
                                 FROM departament
                                 WHERE departament.name = ?;`;
@@ -99,7 +100,6 @@ function addRole(){
                                             console.log('error in quering department');
                                             return;
                                         }
-                                        console.log(result[0].id);
                                         sql = `INSERT INTO role (title, salary, departament_id) VALUES (?,?,?);`;
                                         params = [answears.name, answears.salary, result[0].id];                                        
                                         //query to insert the role
@@ -111,28 +111,75 @@ function addRole(){
                                             }
                                             console.log('Added '+ answears.name + ' to role');
                                             //calling init function to return to main menu
-                                            init();
+                                             init();
                                            
-                                        });
-                                       
+                                        });                                       
                                     });
-                        
-
-                        
-                    }
-
-                );
-                
-
+                    });
             })
             .catch(console.log)
-            // .then( () => db.end())
-                    
-    
-    
-                       
 }
 
+function getemployee(options, question){
+    return inquirer.prompt([
+        {
+            type: 'list',
+            name: 'roles',
+            message: question,
+            choices: options,
+            default: '1'
+        }
+
+    ]);
+
+}
+function updateRole(){
+    let employeeId;
+    let departamentId;
+    sql =`SELECT concat(employee.first_name,' ', employee.last_name) name FROM employee;`;
+    db.promise().query(sql)
+        .then(([rows, fields])=>{
+            getemployee(rows, 'Which employees role do you whant to update? ')
+                .then(answears=>{
+                    sql = `SELECT employee.id 
+                            FROM employee
+                            WHERE concat(employee.first_name,' ', employee.last_name) = ? ;`;
+                    params = answears.roles;                    
+                    db.query(sql,params, (err, rows) => {
+                        if(err){
+                            console.log('error in getting employee Id in updateRole')
+                            return;
+                        }
+                        employeeId = rows[0].id;
+                        sql = `SELECT title as name FROM role;`;
+                        db.promise().query(sql)
+                            .then(([rows, fields])=>{ 
+                                getemployee(rows,'Wich role do you whant to assign the selected employeee')
+                                    .then(answears=>{
+                                        db.query(`SELECT role.id FROM role WHERE role.title = ?`, answears.roles, (err, rows)=>{
+                                            if(err){
+                                                console.log('error in getting departament Id in updateRole')
+                                                return;
+                                            }
+                                            db.query(`UPDATE employee SET employee.role_id = ? WHERE employee.id = ?`, [rows[0].id,employeeId], (err,rows)=>{
+                                                if(err){
+                                                    console.log('error in getting departament Id in updateRole')
+                                                    return;
+                                                }
+                                                console.log("Updated employee's role");
+                                                init();
+                                            });
+                                        });
+
+                                    });
+                            }).catch(console.log);
+
+                    });
+                    
+
+                });
+        }).catch(console.log);
+}
 function wellcome(){
     console.log(",---------------------------------------------------.");
     console.log("|                                                   |");
@@ -155,7 +202,7 @@ function wellcome(){
 
 
 function init(){
-   
+   //showing menu of options to do in the app.
     menu()
         .then ( answears => {
                 switch(answears.menu){
@@ -188,11 +235,10 @@ function init(){
                     });
                 break;
                 case 'View all employees':
-                    console.log('codigo para mostrar los empleados');
                         sql = `SELECT employee.id, employee.first_name, employee.last_name, role.title, departament.name departament, role.salary, concat(employee.first_name,' ',employee.last_name) manager
-                                    FROM employee
-                                    LEFT JOIN role ON employee.role_id = role.id
-                                    LEFT JOIN departament ON role.departament_id = departament.id;`;
+                            FROM employee
+                            LEFT JOIN role ON employee.role_id = role.id
+                            LEFT JOIN departament ON role.departament_id = departament.id;`;
 
                         db.query(sql, (err, rows) => {
                             if(err){
@@ -226,25 +272,26 @@ function init(){
                         });
                 break;
                 case 'Add a role':
-                    console.log('codigo para agregar un rol');
-                    addRole()
-                        // .then(answears=>{
-                        //     console.log ('nose' + answears);
-                        // });
+                    addRole();
+                    
                 break;
                 case 'Add an employee':
                     console.log('codigo para agregar un empleado');
                 break;
                 case 'Update an employee role':
-                    console.log('codigo para mofigicar un empleado');
+                    updateRole();
+                    
                 break;
                 default:
                     console.log('Good bye');
-                // break;
+                    db.end();
+                
             }
         });
     
     
 }
+//display banner
 wellcome();
+//initializing the application
 init();
