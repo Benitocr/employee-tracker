@@ -1,6 +1,6 @@
 const inquirer = require('inquirer');
 const db = require('./db/connection');
-// const cTable = require('console.table');
+ const cTable = require('console.table');
 // const { promise } = require('./db/connection');
 // const Query = require('./db/queries');
 
