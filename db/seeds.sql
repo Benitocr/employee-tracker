@@ -21,10 +21,10 @@ VALUES
 ('John', 'Doe',8,NULL),
 ('Mike', 'Chan', 1 ,1),
 ('Ashley', 'Rodriguez', 2, NULL),
-('Kevin', 'Tupik', 3,2),
+('Kevin', 'Tupik', 3,3),
 ('Kumal', 'Singh', 4, NULL),
-('Malia', 'Brown',5,4),
+('Malia', 'Brown',5,5),
 ('Sarah', 'Lord', 6, NULL),
-('Tom', 'Allen',7,6);
+('Tom', 'Allen',7,7);
 
 

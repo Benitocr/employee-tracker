@@ -1,6 +1,6 @@
 const inquirer = require('inquirer');
 const db = require('./db/connection');
- const cTable = require('console.table');
+const cTable = require('console.table');
 // const { promise } = require('./db/connection');
 // const Query = require('./db/queries');
 
@@ -337,10 +337,11 @@ function init(){
                     });
                 break;
                 case 'View all employees':
-                        sql = `SELECT employee.id, employee.first_name, employee.last_name, role.title, departament.name departament, role.salary, concat(employee.first_name,' ',employee.last_name) manager
-                            FROM employee
-                            LEFT JOIN role ON employee.role_id = role.id
-                            LEFT JOIN departament ON role.departament_id = departament.id;`;
+                        sql = `SELECT employee.id, employee.first_name, employee.last_name, role.title, departament.name departament, role.salary, concat(m.first_name,' ',m.last_name) manager
+                                FROM employee
+                                LEFT JOIN role ON employee.role_id = role.id
+                                LEFT JOIN departament ON role.departament_id = departament.id
+                                left join employee as m on m.id  = employee.manager_id`;
 
                         db.query(sql, (err, rows) => {
                             if(err){

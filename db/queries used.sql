@@ -55,7 +55,7 @@ LEFT JOIN departament ON role.departament_id = departament.id
 left join employee as m on m.id  = employee.manager_id
 
 SELECT employee.id, employee.first_name, employee.last_name, role.title, departament.name departament, role.salary, concat(m.first_name,' ',m.last_name) manager
-    -> FROM employee
-    -> LEFT JOIN role ON employee.role_id = role.id
-    -> LEFT JOIN departament ON role.departament_id = departament.id
-    -> inner join employee as m on employee.manager_id = m.id;
+FROM employee
+LEFT JOIN role ON employee.role_id = role.id
+LEFT JOIN departament ON role.departament_id = departament.id
+inner join employee as m on employee.manager_id = m.id;
