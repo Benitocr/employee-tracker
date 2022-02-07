@@ -236,48 +236,59 @@ function addEmployee(){
                                 console.log('error in query geting roles ')
                                 return;
                             }
-                            employeeRoleId = rows[0].name;
-                            
-                            // db.query(`SELECT id as name FROM role WHERE title = ? `,answearRole.roles, (err, rows) => {
-                            //     if(err){
-                            //         console.log('error in query geting roles ')
-                            //         return;
-                            //     }
-                            //     employeeRoleId = rows[0].name;
-                                
-                                db.query(`SELECT concat(employee.first_name,' ',employee.last_name) as name FROM employee WHERE employee.manager_id is null;`, (err, rows) => {
-                                    if(err){
-                                        console.log('error in query geting roles ')
-                                        return;
-                                    }
-                                    //funcion getnamelst
-                                    rows.push('None');
-                                    getNameFromList(rows,"Who is the employee's manager")
-                                        .then(answear=>{
-                                                if (answear.roles === 'None'){
-                                                    answear.roles = null;
-                                                    db.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?,?,?,?);`, [first_name, last_name, employeeRoleId, answear.roles], (err, rows)=>{
-                                                        if(err){
-                                                            console.log('error in inserting employee ');  
-                                                            console.log(err);                                                     
-                                                            return;
-                                                        }
-                                                        console.log('Employee Added')
-                                                        init();
-                                                    });
+                            employeeRoleId = rows[0].name;    
+                            db.query(`SELECT concat(employee.first_name,' ',employee.last_name) as name FROM employee WHERE employee.manager_id is null;`, (err, rows) => {
+                                if(err){
+                                    console.log('error in query geting roles ')
+                                    return;
+                                }
+                                //funcion getnamelst
+                                rows.push('None');
+                                getNameFromList(rows,"Who is the employee's manager")
+                                    .then(answear=>{
+                                            if (answear.roles === 'None'){
+                                                answear.roles = null;
+                                                db.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?,?,?,?);`, [first_name, last_name, employeeRoleId, answear.roles], (err, rows)=>{
+                                                    if(err){
+                                                        console.log('error in inserting employee ');  
+                                                                                                             
+                                                        return;
+                                                    }
+                                                    console.log('Employee Added')
+                                                    init();
+                                                });
+                                            }
+                                           
+                                            db.query(`SELECT employee.id FROM employee WHERE concat(employee.first_name,' ', employee.last_name) = ?;`, answear.roles,(err,rows)=>{
+                                                if(err){
+                                                    console.log('error in inserting employee ');  
+                                                                                                        
+                                                    return;
                                                 }
-                                                console.log(answear.roles);
                                                 
-
-                                                    
+                                                db.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?,?,?,?);`, [first_name, last_name, employeeRoleId, rows[0].id],(err,rows)=>{
+                                                    if(err){
+                                                        console.log('error in inserting employee ');  
+                                                                                                            
+                                                        return;
+                                                    }
+                                                    console.log('Employee Added');
+                                                    init();
+    
+                                                });
+    
 
                                             });
+
+                                                
+
                                         });
-                                    
-                                    
-                                });
+                                    });
                                 
-                            // });
+                                
+                            });
+                                
+                           
                             
                         });
 

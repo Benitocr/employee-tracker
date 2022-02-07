@@ -37,9 +37,7 @@ WHERE departament.name = ?;
 
 SELECT concat(employee.first_name,' ', employee.last_name) FROM employee;
 
-SELECT employee.id 
-FROM employee
-WHERE concat(employee.first_name,' ', employee.last_name) = 'Tom Allen';
+SELECT employee.id FROM employee WHERE concat(employee.first_name,' ', employee.last_name) = 'Tom Allen';
 
 SELECT role.id
 from role
@@ -59,3 +57,6 @@ FROM employee
 LEFT JOIN role ON employee.role_id = role.id
 LEFT JOIN departament ON role.departament_id = departament.id
 inner join employee as m on employee.manager_id = m.id;
+
+
+SELECT employee.id FROM employee where 

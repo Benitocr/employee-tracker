@@ -13,6 +13,8 @@ An application that can view and manage the departments, roles, and employees in
 
 ## Website
 
+[Video of a demonstration](https://watch.screencastify.com/v/U0up2lufFZLjLFTxb1U7)
+
 
 ![Employee tracker application](images/mockup.JPG)
 
