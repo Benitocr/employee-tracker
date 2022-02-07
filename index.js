@@ -238,12 +238,12 @@ function addEmployee(){
                             }
                             employeeRoleId = rows[0].name;
                             
-                            db.query(`SELECT id as name FROM role WHERE title = ? `,answearRole.roles, (err, rows) => {
-                                if(err){
-                                    console.log('error in query geting roles ')
-                                    return;
-                                }
-                                employeeRoleId = rows[0].name;
+                            // db.query(`SELECT id as name FROM role WHERE title = ? `,answearRole.roles, (err, rows) => {
+                            //     if(err){
+                            //         console.log('error in query geting roles ')
+                            //         return;
+                            //     }
+                            //     employeeRoleId = rows[0].name;
                                 
                                 db.query(`SELECT concat(employee.first_name,' ',employee.last_name) as name FROM employee WHERE employee.manager_id is null;`, (err, rows) => {
                                     if(err){
@@ -256,21 +256,28 @@ function addEmployee(){
                                         .then(answear=>{
                                                 if (answear.roles === 'None'){
                                                     answear.roles = null;
+                                                    db.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?,?,?,?);`, [first_name, last_name, employeeRoleId, answear.roles], (err, rows)=>{
+                                                        if(err){
+                                                            console.log('error in inserting employee ');  
+                                                            console.log(err);                                                     
+                                                            return;
+                                                        }
+                                                        console.log('Employee Added')
+                                                        init();
+                                                    });
                                                 }
-                                                db.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?,?,?,?);`, [first_name, last_name, employeeRoleId, answear.roles], (err, rows)=>{
-                                                    if(err){
-                                                        console.log('error in inserting employee ');                                                        
-                                                        return;
-                                                    }
-                                                    console.log('Employee Added')
-                                                    init();
+                                                console.log(answear.roles);
+                                                
+
+                                                    
+
                                             });
                                         });
                                     
                                     
                                 });
                                 
-                            });
+                            // });
                             
                         });
 
@@ -278,7 +285,7 @@ function addEmployee(){
             });
                 
             
-        });
+        // });
 
 }
 
@@ -341,7 +348,7 @@ function init(){
                                 FROM employee
                                 LEFT JOIN role ON employee.role_id = role.id
                                 LEFT JOIN departament ON role.departament_id = departament.id
-                                left join employee as m on m.id  = employee.manager_id`;
+                                left join employee as m on m.id  = employee.manager_id;`;
 
                         db.query(sql, (err, rows) => {
                             if(err){
